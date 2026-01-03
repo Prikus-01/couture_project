@@ -1,74 +1,162 @@
-# React + TypeScript + Vite
+# StoreAdmin - Inventory Management Portal
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A modern, responsive web application for managing and browsing product inventory. Built with React, TypeScript, and Tailwind CSS.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+### 1. Welcome Home Page
+- Welcome screen with application overview
+- Direct navigation to Inventory Overview and Catalogue Overview
+- Feature highlights and instructions for new users
 
-## React Compiler
+### 2. Inventory Overview Screen
+- **Comprehensive Product Table**: View products with Name, Price, Brand, Category, Stock Status, and Rating
+- **Sorting**: Sort products by Name or Price (ascending/descending)
+- **Category Filtering**: Filter products by specific categories
+- **Search Functionality**: Real-time search with 300ms debounce for responsive performance
+- **Large Data Handling**: Loads 100 products initially, optimized for performance
+- **Stock Status Indicators**: Visual indicators for In Stock, Low Stock, and Out of Stock
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### 3. Product Details Screen
+- **Detailed Product View**: Complete product information with high-quality images
+- **Image Gallery**: Multiple product images with thumbnail navigation
+- **Extended Details**: Description, Rating, Discount Percentage, Stock information
+- **Browse Similar Products**: Related products from the same category displayed as visual cards
+- **Responsive Design**: Optimized for desktop, tablet, and mobile devices
 
-## Expanding the ESLint configuration
+### 4. Catalogue Overview Screen
+- **Category Cards**: Visual representation of all product categories with preview images
+- **Drill-Down Navigation**: Click on a category to view all products in that category
+- **Reusable Interface**: Uses the same Inventory Overview interface for consistent UX
+- **Category Preview**: Sample product image from each category for visual reference
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## Tech Stack
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+- **Framework**: React 19.2.0 with TypeScript
+- **Routing**: React Router DOM 7.11.0
+- **Styling**: Tailwind CSS 4.1.18
+- **State Management**: React Hooks (Context/Redux available but not required for this implementation)
+- **Build Tool**: Vite
+- **API**: DummyJSON Products API (https://dummyjson.com/products)
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+## Getting Started
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+### Prerequisites
+
+- Node.js (v16 or higher)
+- npm or yarn
+
+### Installation
+
+1. Clone the repository
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+3. Start the development server:
+   ```bash
+   npm run dev
+   ```
+
+4. Open your browser and navigate to `http://localhost:5173`
+
+### Build for Production
+
+```bash
+npm run build
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+The built files will be in the `dist` directory.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## Project Structure
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
 ```
-# couture_project
+src/
+├── components/          # Reusable UI components
+│   ├── ErrorMessage.tsx
+│   ├── LoadingSpinner.tsx
+│   ├── Navbar.tsx
+│   └── ProductCard.tsx
+├── pages/              # Page components
+│   ├── Home.tsx
+│   ├── InventoryOverview.tsx
+│   ├── ProductDetails.tsx
+│   └── CatalogueOverview.tsx
+├── services/           # API services
+│   └── api.ts
+├── types/              # TypeScript type definitions
+│   └── index.ts
+├── App.tsx            # Main app component with routing
+├── main.tsx           # Application entry point
+└── index.css          # Global styles
+```
+
+## Assumptions and Design Decisions
+
+### 1. API Integration
+- **Assumption**: The DummyJSON API is reliable and accessible. Error handling is implemented for network failures and API errors.
+- **Decision**: All API calls use async/await with proper error handling. The API service layer is centralized for easy maintenance.
+
+### 2. Data Loading
+- **Assumption**: Loading 100 products initially provides a good balance between performance and data visibility. The requirement states "minimum of 20 products" - we load more for better UX.
+- **Decision**: Products are loaded in batches of 100. Pagination could be added in future iterations if needed.
+
+### 3. Search Functionality
+- **Assumption**: Users type at a moderate speed. The 300ms debounce provides a good balance between responsiveness and API call efficiency.
+- **Decision**: Search is debounced to prevent excessive API calls while maintaining a responsive feel.
+
+### 4. Category Filtering
+- **Assumption**: Category filtering and search are mutually exclusive in the user's workflow. When a user selects a category, search is cleared and vice versa.
+- **Decision**: Category filter and search work independently but reset each other for clarity.
+
+### 5. Similar Products
+- **Assumption**: "Similar products" means products from the same category. We exclude the current product and limit to 6 products as specified.
+- **Decision**: Uses the category-based API endpoint with a limit of 7, then filters out the current product to ensure 6 results.
+
+### 6. Responsive Design
+- **Assumption**: Users will access the application from various devices (desktop, tablet, mobile).
+- **Decision**: Used Tailwind CSS responsive utilities (sm:, md:, lg:) throughout. Mobile-first approach with breakpoints at 640px, 768px, and 1024px.
+
+### 7. Stock Status
+- **Assumption**: Stock status thresholds are:
+  - Out of Stock: 0 units
+  - Low Stock: < 10 units
+  - In Stock: ≥ 10 units
+- **Decision**: Color-coded badges for quick visual identification (red for out of stock, yellow for low stock, green for in stock).
+
+### 8. Navigation
+- **Assumption**: Users prefer URL-based navigation for bookmarking and sharing.
+- **Decision**: React Router is used with URL parameters for category filtering, allowing users to bookmark specific views.
+
+### 9. Loading States
+- **Assumption**: Users need clear feedback when data is being fetched.
+- **Decision**: Loading spinners and skeleton states are used. Error messages include retry functionality.
+
+### 10. Image Handling
+- **Assumption**: Product images from the API are available and loadable. Fallback handling is minimal but could be enhanced.
+- **Decision**: Images use the thumbnail for listings and full images for detail views. Image gallery allows browsing multiple product images.
+
+
+## Performance Considerations
+
+- Debounced search to reduce API calls
+- Efficient re-renders with React hooks
+- Lazy loading could be added for images if needed
+- API responses are cached in component state
+
+## Future Enhancements
+
+- Pagination for large product lists
+- Advanced filtering (price range, rating, etc.)
+- Favorites/Wishlist functionality
+- Export functionality (CSV, PDF)
+- Bulk operations
+- Image lazy loading
+- Infinite scroll
+- Product comparison feature
+- Analytics dashboard
+
+## License
+
+This project is created as an assignment submission.
