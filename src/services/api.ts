@@ -21,11 +21,18 @@ export class ApiError extends Error {
 }
 
 export const api = {
-  // Get all products with pagination
-  getProducts: async (skip = 0, limit = 30): Promise<ProductsResponse> => {
+  // Get all products with pagination and optional sorting
+  getProducts: async (skip = 0, limit = 30, sortBy?: 'name' | 'price' | '', order?: 'asc' | 'desc'): Promise<ProductsResponse> => {
     try {
+      // Map frontend sort key to API field
+      let sortParams = '';
+      if (sortBy) {
+        const apiSortBy = sortBy === 'name' ? 'title' : sortBy; // 'name' -> 'title'
+        sortParams = `&sortBy=${encodeURIComponent(apiSortBy)}${order ? `&order=${encodeURIComponent(order)}` : ''}`;
+      }
+
       const response = await apiClient.get<ProductsResponse>(
-        `/products?skip=${skip}&limit=${limit}`
+        `/products?skip=${skip}&limit=${limit}${sortParams}`
       );
       return response.data;
     } catch (error) {
@@ -55,11 +62,17 @@ export const api = {
     }
   },
 
-  // Search products (supports pagination via limit & skip)
-  searchProducts: async (query: string, limit = 30, skip = 0): Promise<ProductsResponse> => {
+  // Search products (supports pagination & optional sorting via limit, skip, sortBy & order)
+  searchProducts: async (query: string, limit = 30, skip = 0, sortBy?: 'name' | 'price' | '', order?: 'asc' | 'desc'): Promise<ProductsResponse> => {
     try {
+      let sortParams = '';
+      if (sortBy) {
+        const apiSortBy = sortBy === 'name' ? 'title' : sortBy;
+        sortParams = `&sortBy=${encodeURIComponent(apiSortBy)}${order ? `&order=${encodeURIComponent(order)}` : ''}`;
+      }
+
       const response = await apiClient.get<ProductsResponse>(
-        `/products/search?q=${encodeURIComponent(query)}&limit=${limit}&skip=${skip}`
+        `/products/search?q=${encodeURIComponent(query)}&limit=${limit}&skip=${skip}${sortParams}`
       );
       return response.data;
     } catch (error) {
@@ -89,11 +102,17 @@ export const api = {
     }
   },
 
-  // Get products by category (supports pagination via limit & skip)
-  getProductsByCategory: async (category: string, limit = 30, skip = 0): Promise<ProductsResponse> => {
+  // Get products by category (supports pagination & optional sorting via limit, skip, sortBy & order)
+  getProductsByCategory: async (category: string, limit = 30, skip = 0, sortBy?: 'name' | 'price' | '', order?: 'asc' | 'desc'): Promise<ProductsResponse> => {
     try {
+      let sortParams = '';
+      if (sortBy) {
+        const apiSortBy = sortBy === 'name' ? 'title' : sortBy;
+        sortParams = `&sortBy=${encodeURIComponent(apiSortBy)}${order ? `&order=${encodeURIComponent(order)}` : ''}`;
+      }
+
       const response = await apiClient.get<ProductsResponse>(
-        `/products/category/${encodeURIComponent(category)}?limit=${limit}&skip=${skip}`
+        `/products/category/${encodeURIComponent(category)}?limit=${limit}&skip=${skip}${sortParams}`
       );
       return response.data;
     } catch (error) {

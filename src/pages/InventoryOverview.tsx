@@ -58,7 +58,7 @@ export default function InventoryOverview() {
     setPage(1);
   }, [categoryFilter]);
 
-  // Fetch products depending on page, selectedCategory and search term
+  // Fetch products depending on page, selectedCategory, search term, and sorting
   useEffect(() => {
     const fetchProducts = async () => {
       setLoading(true);
@@ -67,22 +67,21 @@ export default function InventoryOverview() {
         const skip = (page - 1) * perPage;
 
         if (searchTerm) {
-          // Use the search endpoint whenever user searches; fetch a large limit and then paginate/filter client-side
-          const res = await api.searchProducts(searchTerm, 1000, 0);
-          let items = res.products || [];
-          if (selectedCategory) {
-            items = items.filter((p) => p.category === selectedCategory);
-          }
-          setProducts(items);
-          setFilteredProducts(items);
-          setTotalCount(items.length);
+          // Use the search endpoint and rely on server-side pagination & sorting
+          const res = await api.searchProducts(searchTerm, perPage, skip, sortBy, sortOrder);
+          const items = res.products || [];
+          // server doesn't support category-filter inside search endpoint reliably, apply extra safety filtering
+          const filtered = selectedCategory ? items.filter((p) => p.category === selectedCategory) : items;
+          setProducts(filtered);
+          setFilteredProducts(filtered);
+          setTotalCount(res.total ?? filtered.length);
         } else if (selectedCategory) {
-          const data = await api.getProductsByCategory(selectedCategory, perPage, skip);
+          const data = await api.getProductsByCategory(selectedCategory, perPage, skip, sortBy, sortOrder);
           setProducts(data.products);
           setFilteredProducts(data.products);
           setTotalCount(data.total ?? data.products.length);
         } else {
-          const data = await api.getProducts(skip, perPage);
+          const data = await api.getProducts(skip, perPage, sortBy, sortOrder);
           setProducts(data.products);
           setFilteredProducts(data.products);
           setTotalCount(data.total ?? data.products.length);
@@ -95,7 +94,7 @@ export default function InventoryOverview() {
     };
 
     fetchProducts();
-  }, [page, selectedCategory, searchTerm]);
+  }, [page, selectedCategory, searchTerm, sortBy, sortOrder]);
 
   // Reset to page 1 when search or category changes
   useEffect(() => {
@@ -103,44 +102,29 @@ export default function InventoryOverview() {
   }, [searchTerm, selectedCategory]);
 
   useEffect(() => {
+    // Apply local filters as a safety net (server-side already applies search/category and sorting when requested)
     let filtered = [...products];
 
-    // Search filter (applies when server-side search isn't used or for extra safety)
     if (searchTerm) {
       filtered = filtered.filter((p) =>
         p.title.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 
-    // Category filter (in case products were fetched without category)
     if (selectedCategory) {
       filtered = filtered.filter((p) => p.category === selectedCategory);
     }
 
-    // Sorting
-    if (sortBy === 'name') {
-      filtered.sort((a, b) =>
-        sortOrder === 'asc'
-          ? a.title.localeCompare(b.title)
-          : b.title.localeCompare(a.title)
-      );
-    } else if (sortBy === 'price') {
-      filtered.sort((a, b) =>
-        sortOrder === 'asc' ? a.price - b.price : b.price - a.price
-      );
-    }
-
+    // Do not perform client-side sorting — sorting is delegated to the API
     setFilteredProducts(filtered);
-  }, [searchTerm, selectedCategory, sortBy, sortOrder, products]);
+  }, [searchTerm, selectedCategory, products]);
 
 
 
   // Pagination
   const totalPages = Math.max(1, Math.ceil(totalCount / perPage));
-  const paginatedProducts = searchTerm ? filteredProducts.slice(
-    (page - 1) * perPage,
-    page * perPage
-  ) : filteredProducts;
+  // We rely on server-side pagination; filteredProducts already contains current page's items
+  const paginatedProducts = filteredProducts;
 
   const getStockStatus = (stock: number) => {
     if (stock > 50) return { label: 'In Stock', color: 'bg-[#5cacfa]/20 text-[#2c4c71] border border-[#5cacfa]/30' };
