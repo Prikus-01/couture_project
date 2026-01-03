@@ -5,6 +5,7 @@ import type { Product } from '../types';
 import LoadingSpinner from '../components/LoadingSpinner';
 import ErrorMessage from '../components/ErrorMessage';
 import ProductCard from '../components/ProductCard';
+import LazyImage from '../components/LazyImage';
 
 export default function InventoryOverview() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -331,7 +332,7 @@ export default function InventoryOverview() {
                               to={`/product/${product.id}`}
                               className="flex items-center gap-3.5 group"
                             >
-                              <img
+                              <LazyImage
                                 src={product.thumbnail}
                                 alt={product.title}
                                 className="w-12 h-12 object-cover rounded-lg border border-[#a5b8cc]/30 group-hover:border-[#5cacfa] transition-colors"

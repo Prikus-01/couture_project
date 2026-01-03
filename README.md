@@ -122,7 +122,7 @@ src/
 - **Assumption**: Stock status thresholds are:
   - Out of Stock: 0 units
   - Low Stock: < 10 units
-  - In Stock: ≥ 10 units
+  - In Stock: >= 10 units
 - **Decision**: Color-coded badges for quick visual identification (red for out of stock, yellow for low stock, green for in stock).
 
 ### 8. Navigation
@@ -137,26 +137,67 @@ src/
 - **Assumption**: Product images from the API are available and loadable. Fallback handling is minimal but could be enhanced.
 - **Decision**: Images use the thumbnail for listings and full images for detail views. Image gallery allows browsing multiple product images.
 
+---
 
-## Performance Considerations
+## Non-functional Requirements & Assumptions 🔧
 
-- Debounced search to reduce API calls
-- Efficient re-renders with React hooks
-- Lazy loading could be added for images if needed
-- API responses are cached in component state
+Below are the non-functional requirements you provided, how the app addresses them, and the assumptions we make when submitting this assignment.
 
-## Future Enhancements
+### Network Transparency ✅
+- **Assumption**: Network connectivity may be intermittent or slow for some users.
+- **Implementation**: All data fetches display clear loading states (skeleton loaders) via `LoadingSpinner` and `ProductCard` placeholders. Failures surface an `ErrorMessage` component with a helpful message and a retry action.
+- **Reasoning**: This avoids blank screens and gives users actionable feedback, improving perceived reliability.
 
-- Pagination for large product lists
-- Advanced filtering (price range, rating, etc.)
-- Favorites/Wishlist functionality
-- Export functionality (CSV, PDF)
-- Bulk operations
-- Image lazy loading
-- Infinite scroll
-- Product comparison feature
-- Analytics dashboard
+### Device Agnostic (Responsive) 📱🖥️
+- **Assumption**: Users will access the app on a wide 1080p monitor, tablets (iPad-like), and mobile phones.
+- **Implementation**: Tailwind CSS responsive utilities and a mobile-first layout ensure consistent spacing and legible UI across breakpoints. The `ProductCard` and layout components adapt columns and image sizes accordingly.
+- **Reasoning**: Using Tailwind's design system ensures consistent spacing and predictable behavior across common device widths.
 
-## License
+### Brand Identity 🎨
+- **Assumption**: The app should use a cohesive, limited color palette and typography to avoid a "patchwork" look.
+- **Implementation**: A central color palette is defined in `tailwind.config.js` (`primary`, `dark`, `neutral`) and a consistent `fontFamily` is applied across the app.
+- **Reasoning**: Centralized theme tokens make it simple to ensure consistency and to update brand colors globally if required.
 
-This project is created as an assignment submission.
+### Performance & Loading Speed ⚡
+- **Assumption**: The app must feel fast even on slower connections; initial UX should be responsive.
+- **Implementation**: Data is fetched in controlled batches (100 items), search is debounced (300ms), and images use thumbnails in list views to reduce payload. Images are lazily loaded with an IntersectionObserver-based `LazyImage` component that provides skeleton placeholders and error fallbacks to improve perceived performance and network transparency. Components are modular to enable additional lazy-loading and code-splitting if the app scales.
+- **Reasoning**: These measures reduce blocking operations and perceived latency, improving overall UX.
+
+### Code Quality & Modularity 🧩
+- **Assumption**: The codebase should be easy to extend and maintain by future contributors.
+- **Implementation**: Reusable UI components (in `src/components/`), a centralized API service (`src/services/api.ts`), and TypeScript types (`src/types/`) enforce contracts and prevent common bugs.
+- **Reasoning**: Clear separations of concern and typed interfaces accelerate onboarding and lower long-term maintenance costs.
+
+---
+
+## Submission Assumptions (to include with the assignment) ✅
+
+When submitting this assignment, please include the following explicit assumptions so reviewers have proper context:
+
+- **API availability:** The DummyJSON Products API is reachable and returns product data. If the API is unavailable, the app surfaces an error and retry option.
+  - *Reasoning*: This project is a frontend-focused exercise; a reliable read-only API simplifies verification.
+
+- **Read-only scope:** No write/CRUD operations (create/update/delete) are required for the assignment.
+  - *Reasoning*: This keeps the scope focused on data presentation, filtering, and responsiveness.
+
+- **Images:** Product images are available from the API; if any image fails to load, a visual placeholder is shown.
+  - *Reasoning*: Placeholder images maintain layout integrity during network failures.
+
+- **No Authentication Needed:** The app does not include user authentication for this submission.
+  - *Reasoning*: Authentication is out-of-scope and would introduce backend dependencies.
+
+- **Browser Support:** The app targets modern evergreen browsers (latest Chrome, Firefox, Edge, Safari).
+  - *Reasoning*: Tailwind and modern React features assume a modern browser environment.
+
+- **Node & Tooling:** Node.js v16+ and npm/yarn are available for running the dev server and building the project.
+  - *Reasoning*: Vite and the toolchain require a recent Node runtime.
+
+- **Performance Baseline:** The app should perform acceptably for datasets up to a few thousand items; pagination or server-side solutions are recommended beyond that.
+  - *Reasoning*: Frontend-only approaches have practical limits; server-side pagination or virtualization would be the next step for larger datasets.
+
+- **Accessibility (Baseline):** Basic accessibility is considered (semantic HTML, focus states), but a full accessibility audit is outside the scope.
+  - *Reasoning*: Ensures reasonable default accessibility without diverting scope from core features.
+
+---
+
+If you'd like, I can also add a short checklist at the top of the README for reviewers to validate these assumptions during assessment (✅ Network checks, ✅ Device checks, ✅ Color/Tokens, etc.). Would you like that added?
