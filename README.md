@@ -99,8 +99,8 @@ src/
 - **Decision**: All API calls use async/await with proper error handling. The API service layer is centralized for easy maintenance.
 
 ### 2. Data Loading
-- **Assumption**: Loading 100 products initially provides a good balance between performance and data visibility. The requirement states "minimum of 20 products" - we load more for better UX.
-- **Decision**: Products are loaded in batches of 100. Pagination could be added in future iterations if needed.
+- **Assumption**: Loading 20 products initially provides a good balance between performance and data visibility. The requirement states "minimum of 20 products" - we load more for better UX.
+- **Decision**: Products are loaded in batches of 20. Pagination could be added in future iterations if needed.
 
 ### 3. Search Functionality
 - **Assumption**: Users type at a moderate speed. The 300ms debounce provides a good balance between responsiveness and API call efficiency.
@@ -123,7 +123,7 @@ src/
   - Out of Stock: 0 units
   - Low Stock: < 10 units
   - In Stock: ≥ 10 units
-- **Decision**: Color-coded badges for quick visual identification (red for out of stock, yellow for low stock, green for in stock).
+- **Decision**: Color-coded badges for quick visual identification .
 
 ### 8. Navigation
 - **Assumption**: Users prefer URL-based navigation for bookmarking and sharing.
@@ -137,26 +137,3 @@ src/
 - **Assumption**: Product images from the API are available and loadable. Fallback handling is minimal but could be enhanced.
 - **Decision**: Images use the thumbnail for listings and full images for detail views. Image gallery allows browsing multiple product images.
 
-
-## Performance Considerations
-
-- Debounced search to reduce API calls
-- Efficient re-renders with React hooks
-- Lazy loading could be added for images if needed
-- API responses are cached in component state
-
-## Future Enhancements
-
-- Pagination for large product lists
-- Advanced filtering (price range, rating, etc.)
-- Favorites/Wishlist functionality
-- Export functionality (CSV, PDF)
-- Bulk operations
-- Image lazy loading
-- Infinite scroll
-- Product comparison feature
-- Analytics dashboard
-
-## License
-
-This project is created as an assignment submission.
