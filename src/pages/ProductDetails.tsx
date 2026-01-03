@@ -53,7 +53,7 @@ export default function ProductDetails() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">
+      <div className="min-h-screen bg-linear-to-br from-slate-50 to-slate-100 flex items-center justify-center">
         <LoadingSpinner />
       </div>
     );
@@ -61,7 +61,7 @@ export default function ProductDetails() {
 
   if (error || !product) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center px-4">
+      <div className="min-h-screen bg-linear-to-br from-slate-50 to-slate-100 flex items-center justify-center px-4">
         <ErrorMessage message={error || 'Product not found'} onRetry={() => window.location.reload()} />
       </div>
     );
@@ -70,7 +70,7 @@ export default function ProductDetails() {
   const discountPrice = product.price * (1 - product.discountPercentage / 100);
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 py-10 px-5">
+    <main className="min-h-screen bg-linear-to-br from-slate-50 to-slate-100 py-10 px-5">
       <div className="container mx-auto max-w-7xl">
         {/* Decorative background elements */}
         <div className="fixed top-20 right-10 w-80 h-80 bg-[#5cacfa]/5 rounded-full blur-3xl pointer-events-none"></div>
@@ -90,7 +90,7 @@ export default function ProductDetails() {
         {/* Main Product Card */}
         <div className="bg-white rounded-[14px] shadow-xl overflow-hidden mb-10 border border-[#a5b8cc]/20">
           {/* Top hero image */}
-          <div className="relative h-[420px] bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center overflow-hidden border-b border-[#a5b8cc]/20">
+          <div className="relative h-105 bg-linear-to-br from-slate-50 to-slate-100 flex items-center justify-center overflow-hidden border-b border-[#a5b8cc]/20">
             {product.images && product.images[selectedImage] ? (
               <img
                 src={product.images[selectedImage]}
@@ -114,7 +114,7 @@ export default function ProductDetails() {
                 <div
                   key={index}
                   onClick={() => setSelectedImage(index)}
-                  className={`flex-shrink-0 h-[76px] w-[76px] rounded-[10px] overflow-hidden border-2 transition-all duration-200 cursor-pointer hover:scale-105 ${
+                  className={`shrink-0 h-19 w-19 rounded-[10px] overflow-hidden border-2 transition-all duration-200 cursor-pointer hover:scale-105 ${
                     selectedImage === index
                       ? 'border-[#2c8cfb] ring-2 ring-[#2c8cfb]/20 shadow-md'
                       : 'border-[#a5b8cc]/30 hover:border-[#5cacfa]'
@@ -137,7 +137,7 @@ export default function ProductDetails() {
           {/* Details section below image */}
           <div className="p-8">
             {/* Category Badge */}
-            <span className="inline-block px-3.5 py-1.5 bg-[#5cacfa]/15 text-[#2c4c71] rounded-[6px] text-[13px] font-semibold uppercase tracking-wide mb-3.5 border border-[#5cacfa]/30">
+            <span className="inline-block px-3.5 py-1.5 bg-[#5cacfa]/15 text-[#2c4c71] rounded-md text-[13px] font-semibold uppercase tracking-wide mb-3.5 border border-[#5cacfa]/30">
               {product.category ? (product.category.charAt(0).toUpperCase() + product.category.slice(1).replace(/-/g, ' ')) : 'Uncategorized'}
             </span>
 
@@ -168,7 +168,7 @@ export default function ProductDetails() {
 
             {/* Stock Badge */}
             <div className="mb-6">
-              <span className={`inline-block px-4 py-2 rounded-[8px] text-[15px] font-semibold ${
+              <span className={`inline-block px-4 py-2 rounded-lg text-[15px] font-semibold ${
                 product.stock > 0 
                   ? 'bg-[#5cacfa]/20 text-[#2c4c71] border border-[#5cacfa]/40' 
                   : 'bg-[#446285]/20 text-[#2c4c71] border border-[#446285]/40'
@@ -188,7 +188,7 @@ export default function ProductDetails() {
                     <span className="text-[18px] text-[#a5b8cc] line-through tabular-nums">
                       ${product.price.toFixed(2)}
                     </span>
-                    <span className="px-2.5 py-1 bg-[#2c8cfb]/15 text-[#2c8cfb] rounded-[6px] text-[14px] font-semibold">
+                    <span className="px-2.5 py-1 bg-[#2c8cfb]/15 text-[#2c8cfb] rounded-md text-[14px] font-semibold">
                       {product.discountPercentage.toFixed(0)}% OFF
                     </span>
                   </>
@@ -226,7 +226,7 @@ export default function ProductDetails() {
                             {r.reviewerEmail}
                           </p>
                         </div>
-                        <div className="flex items-center gap-1.5 px-2.5 py-1 bg-[#2c8cfb]/10 rounded-[6px] border border-[#2c8cfb]/20">
+                        <div className="flex items-center gap-1.5 px-2.5 py-1 bg-[#2c8cfb]/10 rounded-md border border-[#2c8cfb]/20">
                           <svg className="w-4 h-4 text-[#2c8cfb]" fill="currentColor" viewBox="0 0 20 20">
                             <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                           </svg>

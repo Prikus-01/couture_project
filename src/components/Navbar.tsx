@@ -26,7 +26,7 @@ export default function Navbar() {
   ];
 
   return (
-    <nav className="sticky top-0 z-50 bg-gradient-to-br from-[#2c4c71] to-[#446285] shadow-lg backdrop-blur-sm border-b border-[#5cacfa]/20">
+    <nav className="sticky top-0 z-50 bg-linear-to-br from-[#2c4c71] to-[#446285] shadow-lg backdrop-blur-sm border-b border-[#5cacfa]/20">
       <div className="container mx-auto px-6 py-3.5">
         {/* Logo/Brand */}
         <div className="flex items-center justify-between">
@@ -48,13 +48,13 @@ export default function Navbar() {
                 className={`relative flex items-center gap-2 px-4 py-2.5 rounded-[10px] font-medium text-[15px] transition-all duration-200 ${
                   isActive(item.path)
                     ? 'bg-white/15 text-white shadow-md'
-                    : 'text-white/85 hover:bg-white/10 hover:text-white hover:-translate-y-[1px]'
+                    : 'text-white/85 hover:bg-white/10 hover:text-white hover:-translate-y-px'
                 }`}
               >
                 {item.icon}
                 <span>{item.label}</span>
                 {isActive(item.path) && (
-                  <div className="absolute -bottom-3.5 left-1/2 -translate-x-1/2 w-7 h-[3px] bg-[#5cacfa] rounded-t-sm" />
+                  <div className="absolute -bottom-3.5 left-1/2 -translate-x-1/2 w-7 h-0.75 bg-[#5cacfa] rounded-t-sm" />
                 )}
               </Link>
             ))}

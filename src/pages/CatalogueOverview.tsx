@@ -55,7 +55,7 @@ export default function CatalogueOverview() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">
+      <div className="min-h-screen bg-linear-to-br from-slate-50 to-slate-100 flex items-center justify-center">
         <LoadingSpinner />
       </div>
     );
@@ -63,14 +63,14 @@ export default function CatalogueOverview() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center px-4">
+      <div className="min-h-screen bg-linear-to-br from-slate-50 to-slate-100 flex items-center justify-center px-4">
         <ErrorMessage message={error} onRetry={() => window.location.reload()} />
       </div>
     );
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 py-10 px-5">
+    <main className="min-h-screen bg-linear-to-br from-slate-50 to-slate-100 py-10 px-5">
       <div className="container mx-auto max-w-7xl">
         {/* Decorative background elements */}
         <div className="fixed top-20 right-10 w-72 h-72 bg-[#5cacfa]/5 rounded-full blur-3xl pointer-events-none"></div>
@@ -96,11 +96,11 @@ export default function CatalogueOverview() {
                 onClick={() => navigate(`/catalogue?category=${encodeURIComponent(cat)}`)}
                 className="group relative bg-white rounded-[14px] shadow-md hover:shadow-2xl transition-all duration-300 overflow-hidden text-left border-2 border-transparent hover:border-[#5cacfa]/50 transform hover:-translate-y-2"
               >
-                {/* Decorative gradient overlay */}
-                <div className="absolute inset-0 bg-gradient-to-br from-[#2c8cfb]/0 via-transparent to-[#5cacfa]/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+                {/* Decorative linear overlay */}
+                <div className="absolute inset-0 bg-linear-to-br from-[#2c8cfb]/0 via-transparent to-[#5cacfa]/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
 
                 {/* Image Section */}
-                <div className="relative h-52 bg-gradient-to-br from-[#446285] to-[#2c4c71] overflow-hidden">
+                <div className="relative h-52 bg-linear-to-br from-[#446285] to-[#2c4c71] overflow-hidden">
                   {previewProduct ? (
                     <img
                       src={previewProduct.thumbnail}
@@ -114,7 +114,7 @@ export default function CatalogueOverview() {
                       </svg>
                     </div>
                   )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent"></div>
+                  <div className="absolute inset-0 bg-linear-to-t from-black/30 to-transparent"></div>
                 </div>
 
                 {/* Content Section */}

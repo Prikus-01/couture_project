@@ -150,7 +150,7 @@ export default function InventoryOverview() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">
+      <div className="min-h-screen bg-linear-to-br from-slate-50 to-slate-100 flex items-center justify-center">
         <LoadingSpinner />
       </div>
     );
@@ -158,14 +158,14 @@ export default function InventoryOverview() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center px-4">
+      <div className="min-h-screen bg-linear-to-br from-slate-50 to-slate-100 flex items-center justify-center px-4">
         <ErrorMessage message={error} onRetry={() => window.location.reload()} />
       </div>
     );
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 py-10 px-5">
+    <main className="min-h-screen bg-linear-to-br from-slate-50 to-slate-100 py-10 px-5">
       <div className="container mx-auto max-w-7xl">
         {/* Header */}
         <div className="mb-8">
@@ -247,7 +247,7 @@ export default function InventoryOverview() {
             {sortBy && (
               <button
                 onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-                className="p-2.5 border-[1.5px] border-[#a5b8cc] rounded-[8px] bg-white text-[#446285] hover:border-[#5cacfa] hover:bg-[#5cacfa]/10 transition-all duration-200"
+                className="p-2.5 border-[1.5px] border-[#a5b8cc] rounded-lg bg-white text-[#446285] hover:border-[#5cacfa] hover:bg-[#5cacfa]/10 transition-all duration-200"
                 title={sortOrder === 'asc' ? 'Ascending' : 'Descending'}
               >
                 {sortOrder === 'asc' ? (
@@ -266,7 +266,7 @@ export default function InventoryOverview() {
             <div className="ml-auto flex gap-2">
               <button
                 onClick={() => setViewMode('table')}
-                className={`p-2.5 border-[1.5px] rounded-[8px] transition-all duration-200 ${
+                className={`p-2.5 border-[1.5px] rounded-lg transition-all duration-200 ${
                   viewMode === 'table'
                     ? 'bg-[#2c8cfb]/15 border-[#2c8cfb] text-[#2c8cfb]'
                     : 'bg-white border-[#a5b8cc] text-[#446285] hover:border-[#5cacfa] hover:bg-[#5cacfa]/10'
@@ -279,7 +279,7 @@ export default function InventoryOverview() {
               </button>
               <button
                 onClick={() => setViewMode('grid')}
-                className={`p-2.5 border-[1.5px] rounded-[8px] transition-all duration-200 ${
+                className={`p-2.5 border-[1.5px] rounded-lg transition-all duration-200 ${
                   viewMode === 'grid'
                     ? 'bg-[#2c8cfb]/15 border-[#2c8cfb] text-[#2c8cfb]'
                     : 'bg-white border-[#a5b8cc] text-[#446285] hover:border-[#5cacfa] hover:bg-[#5cacfa]/10'
@@ -303,7 +303,7 @@ export default function InventoryOverview() {
           <div className="bg-white rounded-xl shadow-md overflow-hidden border border-[#a5b8cc]/20">
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-gradient-to-r from-[#446285] to-[#2c4c71] border-b-2 border-[#5cacfa]/30">
+                <thead className="bg-linear-to-r from-[#446285] to-[#2c4c71] border-b-2 border-[#5cacfa]/30">
                   <tr>
                     <th className="px-5 py-4 text-left text-[14px] font-semibold text-white uppercase tracking-wider">
                       Product
@@ -350,7 +350,7 @@ export default function InventoryOverview() {
                               <img
                                 src={product.thumbnail}
                                 alt={product.title}
-                                className="w-12 h-12 object-cover rounded-[8px] border border-[#a5b8cc]/30 group-hover:border-[#5cacfa] transition-colors"
+                                className="w-12 h-12 object-cover rounded-lg border border-[#a5b8cc]/30 group-hover:border-[#5cacfa] transition-colors"
                               />
                               <div className="flex flex-col">
                                 <span className="font-medium text-[15px] text-[#2c4c71] group-hover:text-[#2c8cfb] transition-colors line-clamp-1">
@@ -382,7 +382,7 @@ export default function InventoryOverview() {
                             {product.stock} units
                           </td>
                           <td className="px-5 py-4">
-                            <span className={`inline-block px-3 py-1.5 rounded-[6px] text-[13px] font-semibold ${stockStatus.color}`}>
+                            <span className={`inline-block px-3 py-1.5 rounded-md text-[13px] font-semibold ${stockStatus.color}`}>
                               {stockStatus.label}
                             </span>
                           </td>
@@ -417,7 +417,7 @@ export default function InventoryOverview() {
             <button
               onClick={() => setPage((p) => Math.max(1, p - 1))}
               disabled={page === 1}
-              className="px-4.5 py-2.5 border-[1.5px] border-[#a5b8cc] rounded-[8px] bg-white text-[#446285] font-medium text-[15px] hover:border-[#2c8cfb] hover:bg-[#2c8cfb]/6 hover:text-[#2c8cfb] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:border-[#a5b8cc] disabled:hover:bg-white disabled:hover:text-[#446285] transition-all duration-200"
+              className="px-4.5 py-2.5 border-[1.5px] border-[#a5b8cc] rounded-lg bg-white text-[#446285] font-medium text-[15px] hover:border-[#2c8cfb] hover:bg-[#2c8cfb]/6 hover:text-[#2c8cfb] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:border-[#a5b8cc] disabled:hover:bg-white disabled:hover:text-[#446285] transition-all duration-200"
             >
               Previous
             </button>
@@ -429,7 +429,7 @@ export default function InventoryOverview() {
             <button
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
               disabled={page === totalPages}
-              className="px-4.5 py-2.5 border-[1.5px] border-[#a5b8cc] rounded-[8px] bg-white text-[#446285] font-medium text-[15px] hover:border-[#2c8cfb] hover:bg-[#2c8cfb]/6 hover:text-[#2c8cfb] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:border-[#a5b8cc] disabled:hover:bg-white disabled:hover:text-[#446285] transition-all duration-200"
+              className="px-4.5 py-2.5 border-[1.5px] border-[#a5b8cc] rounded-lg bg-white text-[#446285] font-medium text-[15px] hover:border-[#2c8cfb] hover:bg-[#2c8cfb]/6 hover:text-[#2c8cfb] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:border-[#a5b8cc] disabled:hover:bg-white disabled:hover:text-[#446285] transition-all duration-200"
             >
               Next
             </button>
