@@ -1,346 +1,388 @@
-import { useState, useEffect, useMemo } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useSearchParams, Link } from 'react-router-dom';
 import { api } from '../services/api';
-import type { Product, SortOption } from '../types';
+import type { Product } from '../types';
 import LoadingSpinner from '../components/LoadingSpinner';
 import ErrorMessage from '../components/ErrorMessage';
-import { Link } from 'react-router-dom';
+import ProductCard from '../components/ProductCard';
 
 export default function InventoryOverview() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const categoryParam = searchParams.get('category') || '';
-  
+  const categoryFilter = searchParams.get('category');
+
   const [products, setProducts] = useState<Product[]>([]);
-  const [allCategories, setAllCategories] = useState<string[]>([]);
+  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState(categoryParam);
-  const [sortBy, setSortBy] = useState<SortOption>('default');
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+
+  // Categories (fetched separately so the dropdown always contains all categories)
+  const [categories, setCategories] = useState<string[]>([]);
+  const [categoriesLoading, setCategoriesLoading] = useState(false);
+  const [categoriesError, setCategoriesError] = useState<string | null>(null);
+
+  // Filters
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState(categoryFilter || '');
+  const [sortBy, setSortBy] = useState<'name' | 'price' | ''>('');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+
+  // View mode
+  const [viewMode, setViewMode] = useState<'table' | 'grid'>('table');
 
   // Pagination
   const [page, setPage] = useState(1);
-  const [perPage, setPerPage] = useState(20);
-  const [total, setTotal] = useState(0);
+  const [totalCount, setTotalCount] = useState(0);
+  const perPage = 20;
 
-  // Fetch categories
+  // Fetch categories once (so dropdown contains all categories regardless of current page)
   useEffect(() => {
     const fetchCategories = async () => {
+      setCategoriesLoading(true);
+      setCategoriesError(null);
       try {
-        const categories = await api.getCategories();
-        setAllCategories(categories);
+        const cats = await api.getCategories();
+        setCategories(cats || []);
       } catch (err) {
-        // Categories fetch failure is not critical
-        console.error('Failed to load categories:', err);
+        setCategoriesError(err instanceof Error ? err.message : 'Failed to load categories');
+      } finally {
+        setCategoriesLoading(false);
       }
     };
+
     fetchCategories();
   }, []);
 
-  // Fetch products - handle initial load, category and page changes
+  // Keep selected category in sync with URL param
+  useEffect(() => {
+    setSelectedCategory(categoryFilter || '');
+    setPage(1);
+  }, [categoryFilter]);
+
+  // Fetch products depending on page, selectedCategory and search term
   useEffect(() => {
     const fetchProducts = async () => {
       setLoading(true);
       setError(null);
       try {
         const skip = (page - 1) * perPage;
-        let data;
-        if (selectedCategory) {
-          data = await api.getProductsByCategory(selectedCategory, perPage, skip);
+
+        if (searchTerm) {
+          // Use the search endpoint whenever user searches; fetch a large limit and then paginate/filter client-side
+          const res = await api.searchProducts(searchTerm, 1000, 0);
+          let items = res.products || [];
+          if (selectedCategory) {
+            items = items.filter((p) => p.category === selectedCategory);
+          }
+          setProducts(items);
+          setFilteredProducts(items);
+          setTotalCount(items.length);
+        } else if (selectedCategory) {
+          const data = await api.getProductsByCategory(selectedCategory, perPage, skip);
+          setProducts(data.products);
+          setFilteredProducts(data.products);
+          setTotalCount(data.total ?? data.products.length);
         } else {
-          data = await api.getProducts(skip, perPage);
+          const data = await api.getProducts(skip, perPage);
+          setProducts(data.products);
+          setFilteredProducts(data.products);
+          setTotalCount(data.total ?? data.products.length);
         }
-        setProducts(data.products);
-        setTotal(data.total);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load products');
       } finally {
         setLoading(false);
       }
     };
-    fetchProducts();
-  }, [selectedCategory, page, perPage]);
 
-  // When search query changes, reset to first page
+    fetchProducts();
+  }, [page, selectedCategory, searchTerm]);
+
+  // Reset to page 1 when search or category changes
   useEffect(() => {
     setPage(1);
-  }, [searchQuery]);
+  }, [searchTerm, selectedCategory]);
 
-  // Search functionality with debouncing (respecting page & perPage)
   useEffect(() => {
-    if (!searchQuery.trim()) {
-      // If search is cleared, simply let the other effect (selectedCategory, page) handle fetching
-      return;
-    }
-
-    const timeoutId = setTimeout(() => {
-      setLoading(true);
-      const skip = (page - 1) * perPage;
-      api
-        .searchProducts(searchQuery, perPage, skip)
-        .then((data) => {
-          setProducts(data.products);
-          setTotal(data.total);
-          setLoading(false);
-        })
-        .catch((err) => {
-          setError(err instanceof Error ? err.message : 'Search failed');
-          setLoading(false);
-        });
-    }, 300);
-
-    return () => clearTimeout(timeoutId);
-  }, [searchQuery, page, perPage]);
-
-  // Filtered and sorted products
-  const filteredAndSortedProducts = useMemo(() => {
     let filtered = [...products];
 
-    // Filter by category (if search is not active)
-    if (selectedCategory && !searchQuery.trim()) {
+    // Search filter (applies when server-side search isn't used or for extra safety)
+    if (searchTerm) {
+      filtered = filtered.filter((p) =>
+        p.title.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    // Category filter (in case products were fetched without category)
+    if (selectedCategory) {
       filtered = filtered.filter((p) => p.category === selectedCategory);
     }
 
-    // Sort products
-    if (sortBy !== 'default') {
-      filtered.sort((a, b) => {
-        let aVal: string | number;
-        let bVal: string | number;
-
-        if (sortBy === 'name') {
-          aVal = a.title.toLowerCase();
-          bVal = b.title.toLowerCase();
-        } else {
-          aVal = a.price;
-          bVal = b.price;
-        }
-
-        if (aVal < bVal) return sortDirection === 'asc' ? -1 : 1;
-        if (aVal > bVal) return sortDirection === 'asc' ? 1 : -1;
-        return 0;
-      });
+    // Sorting
+    if (sortBy === 'name') {
+      filtered.sort((a, b) =>
+        sortOrder === 'asc'
+          ? a.title.localeCompare(b.title)
+          : b.title.localeCompare(a.title)
+      );
+    } else if (sortBy === 'price') {
+      filtered.sort((a, b) =>
+        sortOrder === 'asc' ? a.price - b.price : b.price - a.price
+      );
     }
 
-    return filtered;
-  }, [products, selectedCategory, sortBy, sortDirection, searchQuery]);
+    setFilteredProducts(filtered);
+  }, [searchTerm, selectedCategory, sortBy, sortOrder, products]);
 
-  const handleSort = (option: SortOption) => {
-    if (sortBy === option) {
-      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortBy(option);
-      setSortDirection('asc');
-    }
-  };
 
-  const handleCategoryChange = (category: string) => {
-    setSelectedCategory(category);
-    setSearchQuery(''); // Clear search when filtering by category
-    if (category) {
-      setSearchParams({ category });
-    } else {
-      setSearchParams({});
-    }
-  };
+
+  // Pagination
+  const totalPages = Math.max(1, Math.ceil(totalCount / perPage));
+  const paginatedProducts = searchTerm ? filteredProducts.slice(
+    (page - 1) * perPage,
+    page * perPage
+  ) : filteredProducts;
 
   const getStockStatus = (stock: number) => {
-    if (stock === 0) return { label: 'Out of Stock', color: 'bg-red-100 text-red-800' };
-    if (stock < 10) return { label: 'Low Stock', color: 'bg-yellow-100 text-yellow-800' };
-    return { label: 'In Stock', color: 'bg-green-100 text-green-800' };
+    if (stock > 50) return { label: 'In Stock', color: 'bg-[#5cacfa]/20 text-[#2c4c71] border border-[#5cacfa]/30' };
+    if (stock > 0) return { label: 'Low Stock', color: 'bg-[#a5b8cc]/25 text-[#446285] border border-[#a5b8cc]/40' };
+    return { label: 'Out of Stock', color: 'bg-[#446285]/15 text-[#2c4c71] border border-[#446285]/30' };
   };
 
-  if (error && !products.length) {
+  if (loading) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">
+        <LoadingSpinner />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center px-4">
         <ErrorMessage message={error} onRetry={() => window.location.reload()} />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-indigo-50 to-purple-100">
-      {/* Decorative elements */}
-      <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-10 w-96 h-96 bg-purple-200 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob"></div>
-        <div className="absolute bottom-20 right-10 w-96 h-96 bg-indigo-200 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-2000"></div>
-      </div>
-
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <main className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 py-10 px-5">
+      <div className="container mx-auto max-w-7xl">
         {/* Header */}
-        <div className="mb-8 text-center">
-          <h1 className="text-5xl md:text-6xl font-extrabold mb-4">
-            <span className="bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
-              Inventory Overview
-            </span>
+        <div className="mb-8">
+          <h1 className="text-[40px] md:text-5xl font-bold text-[#2c4c71] mb-2.5 tracking-tight">
+            {selectedCategory
+              ? `${selectedCategory.charAt(0).toUpperCase() + selectedCategory.slice(1)} Products`
+              : 'Inventory Overview'}
           </h1>
-          <p className="text-xl text-gray-700">Manage and browse your product inventory</p>
+          <p className="text-[16px] text-[#5c6468] leading-relaxed">
+            Manage and browse your product inventory
+          </p>
         </div>
 
-        {/* Filters and Search */}
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl p-6 mb-8 border border-purple-100">
-          <div className="grid md:grid-cols-3 gap-4">
-            {/* Search */}
-            <div>
-              <label htmlFor="search" className="block text-sm font-semibold text-gray-700 mb-2">
-                🔍 Search Products
-              </label>
-              <input
-                id="search"
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search by name..."
-                className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all"
-              />
+        {/* Controls */}
+        <div className="bg-white rounded-xl p-6 mb-7 shadow-md border border-[#a5b8cc]/25">
+          {/* Search */}
+          <div className="relative mb-4.5">
+            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-[#a5b8cc]">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
             </div>
+            <input
+              type="text"
+              placeholder="Search products by name..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-12 pr-4 py-3 border-[1.5px] border-[#a5b8cc] rounded-[10px] text-[15px] text-[#2c4c71] placeholder-[#a5b8cc] focus:outline-none focus:border-[#2c8cfb] focus:ring-3 focus:ring-[#2c8cfb]/10 transition-all duration-200"
+            />
+          </div>
 
+          {/* Filters Row */}
+          <div className="flex flex-wrap gap-3.5 items-center">
             {/* Category Filter */}
-            <div>
-              <label htmlFor="category" className="block text-sm font-semibold text-gray-700 mb-2">
-                📂 Filter by Category
-              </label>
-              <select
-                id="category"
-                value={selectedCategory}
-                onChange={(e) => handleCategoryChange(e.target.value)}
-                className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all bg-white"
-              >
-                <option value="">All Categories</option>
-                {allCategories.map((cat) => (
-                  <option key={cat} value={cat}>
-                    {cat.charAt(0).toUpperCase() + cat.slice(1).replace(/-/g, ' ')}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <select
+              value={selectedCategory}
+              onChange={(e) => {
+                const val = e.target.value;
+                setSelectedCategory(val);
+                setPage(1);
+                // sync to URL
+                if (val) setSearchParams({ category: val });
+                else setSearchParams({});
+              }}
+              className="px-3.5 py-2.5 border-[1.5px] border-[#a5b8cc] rounded-[9px] text-[15px] text-[#446285] bg-white hover:border-[#5cacfa] hover:bg-slate-50 focus:outline-none focus:border-[#2c8cfb] focus:ring-3 focus:ring-[#2c8cfb]/10 transition-all duration-200 cursor-pointer"
+              disabled={categoriesLoading}
+            >
+              {categoriesLoading ? (
+                <option value="">Loading categories...</option>
+              ) : categoriesError ? (
+                <>
+                  <option value="">All Categories</option>
+                  <option value="">Failed to load categories</option>
+                </>
+              ) : (
+                <>
+                  <option value="">All Categories</option>
+                  {categories.slice().sort().map((cat) => (
+                    <option key={cat} value={cat}>
+                      {cat.charAt(0).toUpperCase() + cat.slice(1).replace(/-/g, ' ')}
+                    </option>
+                  ))}
+                </>
+              )}
+            </select>
 
-            {/* Sort */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">🔢 Sort By</label>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => handleSort('name')}
-                  className={`flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all ${
-                    sortBy === 'name'
-                      ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg scale-105'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200 hover:scale-105'
-                  }`}
-                >
-                  Name {sortBy === 'name' && (sortDirection === 'asc' ? '↑' : '↓')}
-                </button>
-                <button
-                  onClick={() => handleSort('price')}
-                  className={`flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all ${
-                    sortBy === 'price'
-                      ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg scale-105'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200 hover:scale-105'
-                  }`}
-                >
-                  Price {sortBy === 'price' && (sortDirection === 'asc' ? '↑' : '↓')}
-                </button>
-              </div>
+            {/* Sort By */}
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value as 'name' | 'price' | '')}
+              className="px-3.5 py-2.5 border-[1.5px] border-[#a5b8cc] rounded-[9px] text-[15px] text-[#446285] bg-white hover:border-[#5cacfa] hover:bg-slate-50 focus:outline-none focus:border-[#2c8cfb] focus:ring-3 focus:ring-[#2c8cfb]/10 transition-all duration-200 cursor-pointer"
+            >
+              <option value="">Sort By</option>
+              <option value="name">Name</option>
+              <option value="price">Price</option>
+            </select>
+
+            {/* Sort Order */}
+            {sortBy && (
+              <button
+                onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+                className="p-2.5 border-[1.5px] border-[#a5b8cc] rounded-[8px] bg-white text-[#446285] hover:border-[#5cacfa] hover:bg-[#5cacfa]/10 transition-all duration-200"
+                title={sortOrder === 'asc' ? 'Ascending' : 'Descending'}
+              >
+                {sortOrder === 'asc' ? (
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" />
+                  </svg>
+                ) : (
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4h13M3 8h9m-9 4h9m5-4v12m0 0l-4-4m4 4l4-4" />
+                  </svg>
+                )}
+              </button>
+            )}
+
+            {/* View Toggle */}
+            <div className="ml-auto flex gap-2">
+              <button
+                onClick={() => setViewMode('table')}
+                className={`p-2.5 border-[1.5px] rounded-[8px] transition-all duration-200 ${
+                  viewMode === 'table'
+                    ? 'bg-[#2c8cfb]/15 border-[#2c8cfb] text-[#2c8cfb]'
+                    : 'bg-white border-[#a5b8cc] text-[#446285] hover:border-[#5cacfa] hover:bg-[#5cacfa]/10'
+                }`}
+                title="Table View"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                </svg>
+              </button>
+              <button
+                onClick={() => setViewMode('grid')}
+                className={`p-2.5 border-[1.5px] rounded-[8px] transition-all duration-200 ${
+                  viewMode === 'grid'
+                    ? 'bg-[#2c8cfb]/15 border-[#2c8cfb] text-[#2c8cfb]'
+                    : 'bg-white border-[#a5b8cc] text-[#446285] hover:border-[#5cacfa] hover:bg-[#5cacfa]/10'
+                }`}
+                title="Grid View"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                </svg>
+              </button>
             </div>
           </div>
         </div>
 
-        {/* Products Table */}
-        {loading && products.length === 0 ? (
-          <LoadingSpinner />
-        ) : (
-          <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl overflow-hidden border border-purple-100">
+        {/* Results Count */}
+        <div className="mb-5 text-[15px] text-[#5c6468] font-medium">
+          Showing {paginatedProducts.length} of {totalCount} products
+        </div>
+        {/* Table View */}
+        {viewMode === 'table' && (
+          <div className="bg-white rounded-xl shadow-md overflow-hidden border border-[#a5b8cc]/20">
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gradient-to-r from-purple-600 to-indigo-600">
+              <table className="w-full">
+                <thead className="bg-gradient-to-r from-[#446285] to-[#2c4c71] border-b-2 border-[#5cacfa]/30">
                   <tr>
-                    <th className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">
+                    <th className="px-5 py-4 text-left text-[14px] font-semibold text-white uppercase tracking-wider">
                       Product
                     </th>
-                    <th className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">
+                    <th className="px-5 py-4 text-left text-[14px] font-semibold text-white uppercase tracking-wider">
                       Brand
                     </th>
-                    <th className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">
+                    <th className="px-5 py-4 text-left text-[14px] font-semibold text-white uppercase tracking-wider">
                       Category
                     </th>
-                    <th className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">
+                    <th className="px-5 py-4 text-left text-[14px] font-semibold text-white uppercase tracking-wider">
                       Price
                     </th>
-                    <th className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">
+                    <th className="px-5 py-4 text-left text-[14px] font-semibold text-white uppercase tracking-wider">
                       Stock
                     </th>
-                    <th className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">
+                    <th className="px-5 py-4 text-left text-[14px] font-semibold text-white uppercase tracking-wider">
                       Status
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-100">
-                  {filteredAndSortedProducts.length === 0 ? (
+                <tbody>
+                  {paginatedProducts.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="px-6 py-12 text-center">
-                        <div className="flex flex-col items-center">
-                          <svg className="w-16 h-16 text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
-                          </svg>
-                          <p className="text-lg font-semibold text-gray-500">No products found</p>
-                        </div>
+                      <td colSpan={6} className="px-5 py-12 text-center text-[15px] text-[#5c6468]">
+                        No products found
                       </td>
                     </tr>
                   ) : (
-                    filteredAndSortedProducts.map((product) => {
+                    paginatedProducts.map((product, index) => {
                       const stockStatus = getStockStatus(product.stock);
                       return (
                         <tr
                           key={product.id}
-                          className="hover:bg-purple-50/50 cursor-pointer transition-all duration-200"
+                          className={`border-b border-[#a5b8cc]/25 hover:bg-[#5cacfa]/6 transition-colors duration-150 ${
+                            index % 2 === 1 ? 'bg-[#a5b8cc]/4' : ''
+                          }`}
                         >
-                          <td className="px-6 py-4 whitespace-nowrap">
+                          <td className="px-5 py-4">
                             <Link
                               to={`/product/${product.id}`}
-                              className="flex items-center group"
+                              className="flex items-center gap-3.5 group"
                             >
-                              <div className="relative">
-                                <img
-                                  src={product.thumbnail}
-                                  alt={product.title}
-                                  className="h-12 w-12 rounded-lg object-cover mr-4 ring-2 ring-gray-200 group-hover:ring-purple-400 transition-all"
-                                />
-                              </div>
-                              <div>
-                                <div className="text-sm font-semibold text-gray-900 group-hover:bg-gradient-to-r group-hover:from-purple-600 group-hover:to-indigo-600 group-hover:bg-clip-text group-hover:text-transparent transition-all">
+                              <img
+                                src={product.thumbnail}
+                                alt={product.title}
+                                className="w-12 h-12 object-cover rounded-[8px] border border-[#a5b8cc]/30 group-hover:border-[#5cacfa] transition-colors"
+                              />
+                              <div className="flex flex-col">
+                                <span className="font-medium text-[15px] text-[#2c4c71] group-hover:text-[#2c8cfb] transition-colors line-clamp-1">
                                   {product.title}
-                                </div>
-                                <div className="text-xs text-gray-500 flex items-center mt-1">
-                                  <span className="text-yellow-500 mr-1">⭐</span>
-                                  {product.rating.toFixed(1)}
-                                </div>
+                                </span>
+                                {product.rating && (
+                                  <span className="text-[13px] text-[#5c6468] flex items-center gap-1">
+                                    ⭐ {product.rating.toFixed(1)}
+                                  </span>
+                                )}
                               </div>
                             </Link>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-700">
+                          <td className="px-5 py-4 text-[15px] text-[#5c6468]">
                             {product.brand}
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <span className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-semibold">
-                              {product.category}
-                            </span>
+                          <td className="px-5 py-4 text-[15px] text-[#5c6468]">
+                            {product.category}
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm font-bold text-gray-900">
-                              ${product.price.toFixed(2)}
-                            </div>
+                          <td className="px-5 py-4 text-[15px] font-semibold text-[#2c4c71] tabular-nums">
+                            ${product.price.toFixed(2)}
                             {product.discountPercentage > 0 && (
-                              <span className="text-xs text-orange-600 font-semibold">
+                              <span className="ml-2 text-[12px] font-semibold px-2 py-0.5 bg-[#2c8cfb]/15 text-[#2c8cfb] rounded-[5px]">
                                 {product.discountPercentage.toFixed(0)}% off
                               </span>
                             )}
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-700">
+                          <td className="px-5 py-4 text-[15px] font-medium text-[#2c4c71] tabular-nums">
                             {product.stock} units
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <span
-                              className={`px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full ${stockStatus.color}`}
-                            >
+                          <td className="px-5 py-4">
+                            <span className={`inline-block px-3 py-1.5 rounded-[6px] text-[13px] font-semibold ${stockStatus.color}`}>
                               {stockStatus.label}
                             </span>
                           </td>
@@ -351,80 +393,49 @@ export default function InventoryOverview() {
                 </tbody>
               </table>
             </div>
-            {loading && products.length > 0 && (
-              <div className="px-6 py-4 bg-purple-50/50 text-center text-sm text-purple-700 font-semibold">
-                <div className="flex items-center justify-center">
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-purple-600 mr-2"></div>
-                  Updating results...
-                </div>
-              </div>
-            )}
-
-            {/* Pagination controls */}
-            <div className="flex items-center justify-between px-6 py-4 bg-white/90 border-t border-gray-100">
-              <div className="text-sm text-gray-600">
-                Showing <span className="font-semibold">{total === 0 ? 0 : (page - 1) * perPage + 1}</span> - <span className="font-semibold">{Math.min(page * perPage, total)}</span> of <span className="font-semibold">{total}</span>
-              </div>
-
-              <div className="flex items-center gap-3">
-                <div className="flex items-center">
-                  <label className="text-sm mr-2 text-gray-600">Per page</label>
-                  <select
-                    value={perPage}
-                    onChange={(e) => { setPerPage(parseInt(e.target.value)); setPage(1); }}
-                    className="px-3 py-1 border rounded-md"
-                  >
-                    <option value={10}>10</option>
-                    <option value={20}>20</option>
-                    <option value={50}>50</option>
-                    <option value={100}>100</option>
-                  </select>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => setPage((p) => Math.max(1, p - 1))}
-                    disabled={page === 1}
-                    className={`px-3 py-1 rounded-md border ${page === 1 ? 'opacity-50 cursor-not-allowed' : ''}`}
-                  >
-                    Prev
-                  </button>
-
-                  <div className="flex items-center gap-1">
-                    {Array.from({ length: Math.max(1, Math.ceil(total / perPage)) }).slice(Math.max(0, page - 3), Math.min(Math.ceil(total / perPage), page + 2)).map((_, idx) => {
-                      const pageNumber = Math.max(1, Math.min(Math.ceil(total / perPage), page - 2)) + idx;
-                      return (
-                        <button
-                          key={pageNumber}
-                          onClick={() => setPage(pageNumber)}
-                          className={`px-3 py-1 rounded-md border ${page === pageNumber ? 'bg-purple-600 text-white' : ''}`}
-                        >
-                          {pageNumber}
-                        </button>
-                      );
-                    })}
-                  </div>
-
-                  <button
-                    onClick={() => setPage((p) => p + 1)}
-                    disabled={page * perPage >= total}
-                    className={`px-3 py-1 rounded-md border ${page * perPage >= total ? 'opacity-50 cursor-not-allowed' : ''}`}
-                  >
-                    Next
-                  </button>
-                </div>
-              </div>
-            </div>
           </div>
         )}
 
-        {error && products.length > 0 && (
-          <div className="mt-6">
-            <ErrorMessage message={error} />
+        {/* Grid View */}
+        {viewMode === 'grid' && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {paginatedProducts.length === 0 ? (
+              <div className="col-span-full text-center py-16 text-[15px] text-[#5c6468]">
+                No products found
+              </div>
+            ) : (
+              paginatedProducts.map((product) => (
+                <ProductCard key={product.id} product={product} />
+              ))
+            )}
+          </div>
+        )}
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="mt-8 flex items-center justify-center gap-2.5">
+            <button
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={page === 1}
+              className="px-4.5 py-2.5 border-[1.5px] border-[#a5b8cc] rounded-[8px] bg-white text-[#446285] font-medium text-[15px] hover:border-[#2c8cfb] hover:bg-[#2c8cfb]/6 hover:text-[#2c8cfb] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:border-[#a5b8cc] disabled:hover:bg-white disabled:hover:text-[#446285] transition-all duration-200"
+            >
+              Previous
+            </button>
+
+            <span className="px-4 py-2 text-[15px] text-[#5c6468] font-medium">
+              Page {page} of {totalPages}
+            </span>
+
+            <button
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              disabled={page === totalPages}
+              className="px-4.5 py-2.5 border-[1.5px] border-[#a5b8cc] rounded-[8px] bg-white text-[#446285] font-medium text-[15px] hover:border-[#2c8cfb] hover:bg-[#2c8cfb]/6 hover:text-[#2c8cfb] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:border-[#a5b8cc] disabled:hover:bg-white disabled:hover:text-[#446285] transition-all duration-200"
+            >
+              Next
+            </button>
           </div>
         )}
       </div>
-    </div>
+    </main>
   );
 }
-

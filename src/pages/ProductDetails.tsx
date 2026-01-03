@@ -62,7 +62,7 @@ export default function ProductDetails() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-indigo-50 to-purple-100 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">
         <LoadingSpinner />
       </div>
     );
@@ -70,10 +70,8 @@ export default function ProductDetails() {
 
   if (error || !product) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-indigo-50 to-purple-100 flex items-center justify-center px-4">
-        <div className="max-w-2xl w-full">
-          <ErrorMessage message={error || 'Product not found'} onRetry={() => window.location.reload()} />
-        </div>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center px-4">
+        <ErrorMessage message={error || 'Product not found'} onRetry={() => window.location.reload()} />
       </div>
     );
   }
@@ -81,172 +79,212 @@ export default function ProductDetails() {
   const discountPrice = product.price * (1 - product.discountPercentage / 100);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-indigo-50 to-purple-100">
-      {/* Decorative elements */}
-      <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-        <div className="absolute top-20 right-10 w-96 h-96 bg-purple-200 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob"></div>
-        <div className="absolute bottom-20 left-10 w-96 h-96 bg-yellow-200 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-2000"></div>
-      </div>
+    <main className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 py-10 px-5">
+      <div className="container mx-auto max-w-7xl">
+        {/* Decorative background elements */}
+        <div className="fixed top-20 right-10 w-80 h-80 bg-[#5cacfa]/5 rounded-full blur-3xl pointer-events-none"></div>
+        <div className="fixed bottom-20 left-10 w-96 h-96 bg-[#2c8cfb]/5 rounded-full blur-3xl pointer-events-none"></div>
 
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Breadcrumb */}
-        <nav className="mb-8">
-          <Link to="/inventory" className="inline-flex items-center text-purple-600 hover:text-purple-700 text-sm font-semibold transition-colors group">
-            <svg className="w-4 h-4 mr-2 transform group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-            Back to Inventory
-          </Link>
-        </nav>
+        <Link
+          to="/inventory"
+          className="inline-flex items-center gap-2 text-[15px] font-medium text-[#446285] hover:text-[#2c8cfb] mb-6 transition-colors"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          </svg>
+          Back to Inventory
+        </Link>
 
         {/* Main Product Card */}
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-2xl overflow-hidden border border-purple-100 mb-12">
-          <div className="p-6 md:p-8 space-y-8">
-            {/* Top hero image */}
-            <div className="w-full rounded-2xl overflow-hidden bg-gray-50 shadow-lg">
+        <div className="bg-white rounded-[14px] shadow-xl overflow-hidden mb-10 border border-[#a5b8cc]/20">
+          {/* Top hero image */}
+          <div className="relative h-[420px] bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center overflow-hidden border-b border-[#a5b8cc]/20">
+            {product.images && product.images[selectedImage] ? (
               <img
-                src={product.images[selectedImage] || product.thumbnail}
+                src={product.images[selectedImage]}
                 alt={product.title}
-                className="w-full h-[48vh] md:h-[64vh] object-cover"
+                className="max-w-full max-h-full object-contain p-8"
               />
-            </div>
-
-            {/* Thumbnails */}
-            <div className="flex gap-3 overflow-x-auto">
-              {product.images.length ? (
-                product.images.map((image, index) => (
-                  <button
-                    key={index}
-                    onClick={() => setSelectedImage(index)}
-                    className={`h-20 w-20 flex-shrink-0 rounded-lg overflow-hidden border-2 transition-all transform hover:scale-105 ${
-                      selectedImage === index
-                        ? 'border-purple-500 ring-2 ring-purple-200 shadow-lg'
-                        : 'border-gray-200 hover:border-purple-300'
-                    }`}
-                  >
-                    <img src={image} alt={`${product.title} view ${index + 1}`} className="w-full h-full object-cover" />
-                  </button>
-                ))
-              ) : (
-                <div className="p-6 text-gray-500">No images available</div>
-              )}
-            </div>
-
-            {/* Details section below image */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {/* Main info */}
-              <div className="md:col-span-2">
-                <div className="mb-2">
-                  <span className="inline-block px-4 py-2 bg-purple-500 text-white text-sm font-bold rounded-full mb-4 shadow-sm">
-                    {product.category ? (product.category.charAt(0).toUpperCase() + product.category.slice(1).replace(/-/g, ' ')) : 'Uncategorized'}
-                  </span>
-                  <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900 mb-2 leading-tight">{product.title}</h1>
-                  <p className="text-lg text-gray-600">{product.brand}</p>
-
-                  <div className="mt-4 flex items-center gap-4">
-                    <div className="flex items-center">
-                      <span className="text-yellow-500 mr-2">⭐</span>
-                      <span className="font-semibold">{product.rating.toFixed(1)}</span>
-                      <span className="ml-2 text-sm text-gray-500">({product.reviews?.length ?? '0'} reviews)</span>
-                    </div>
-
-                    <div className="ml-4">
-                      <span className={`px-3 py-1 rounded-full font-semibold text-sm ${product.stock > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>{product.stock > 0 ? `${product.stock} in stock` : 'Out of stock'}</span>
-                    </div>
-                  </div>
-
-                  <div className="mt-4">
-                    <div className="text-3xl font-bold text-gray-900">${discountPrice.toFixed(2)}</div>
-                    {product.discountPercentage > 0 && <div className="text-sm text-gray-500 line-through">${product.price.toFixed(2)}</div>}
-                    {product.discountPercentage > 0 && <div className="mt-2 px-3 py-1 inline-block text-sm font-semibold bg-orange-400 text-white rounded-xl">{product.discountPercentage.toFixed(0)}% OFF</div>}
-                  </div>
-                </div>
-
-                {/* Description */}
-                <div className="mb-6 p-6 bg-white rounded-lg border">
-                  <h2 className="text-xl font-bold mb-2">Description</h2>
-                  <p className="text-gray-700 leading-relaxed">{product.description}</p>
-                </div>
-
-                {/* Reviews */}
-                <div className="mb-8">
-                  <h3 className="text-xl font-bold mb-3">Customer Reviews</h3>
-                  {product.reviews && product.reviews.length ? (
-                    <div className="space-y-4">
-                      {product.reviews.map((r: Review, idx) => (
-                        <div key={idx} className="p-4 rounded-lg bg-gray-50 border">
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <div className="font-semibold">{r.reviewerName ?? 'Anonymous'}</div>
-                              <div className="text-xs text-gray-500">{r.reviewerEmail}</div>
-                            </div>
-                            <div className="text-sm font-semibold">{r.rating} / 5</div>
-                          </div>
-                          <div className="mt-2 text-gray-700">{r.comment}</div>
-                          <div className="mt-2 text-xs text-gray-400">{formatDate(r.date)}</div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-sm text-gray-500">No reviews yet</div>
-                  )}
-                </div>
+            ) : (
+              <div className="text-[#a5b8cc] flex flex-col items-center gap-3">
+                <svg className="w-24 h-24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                <span className="text-[15px]">No image available</span>
               </div>
+            )}
+          </div>
 
-              {/* Side panel with quick facts */}
-              <aside className="p-4 bg-gray-50 rounded-lg border">
-                <div className="text-xs text-gray-500">SKU</div>
-                <div className="font-medium mb-3">{product.sku ?? '—'}</div>
+          {/* Thumbnails */}
+          <div className="flex gap-3 p-5 overflow-x-auto bg-[#a5b8cc]/6 border-t border-[#a5b8cc]/20">
+            {product.images.length ? (
+              product.images.map((image, index) => (
+                <div
+                  key={index}
+                  onClick={() => setSelectedImage(index)}
+                  className={`flex-shrink-0 h-[76px] w-[76px] rounded-[10px] overflow-hidden border-2 transition-all duration-200 cursor-pointer hover:scale-105 ${
+                    selectedImage === index
+                      ? 'border-[#2c8cfb] ring-2 ring-[#2c8cfb]/20 shadow-md'
+                      : 'border-[#a5b8cc]/30 hover:border-[#5cacfa]'
+                  }`}
+                >
+                  <img
+                    src={image}
+                    alt={`${product.title} ${index + 1}`}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              ))
+            ) : (
+              <div className="text-[15px] text-[#5c6468] py-4">
+                No images available
+              </div>
+            )}
+          </div>
 
-                <div className="text-xs text-gray-500">Weight</div>
-                <div className="font-medium mb-3">{product.weight ? `${product.weight}` : '—'}</div>
+          {/* Details section below image */}
+          <div className="p-8">
+            {/* Category Badge */}
+            <span className="inline-block px-3.5 py-1.5 bg-[#5cacfa]/15 text-[#2c4c71] rounded-[6px] text-[13px] font-semibold uppercase tracking-wide mb-3.5 border border-[#5cacfa]/30">
+              {product.category ? (product.category.charAt(0).toUpperCase() + product.category.slice(1).replace(/-/g, ' ')) : 'Uncategorized'}
+            </span>
 
-                <div className="text-xs text-gray-500">Dimensions</div>
-                <div className="font-medium mb-3">{formatDimensions(product.dimensions)}</div>
+            {/* Title */}
+            <h1 className="text-[36px] md:text-[42px] font-bold text-[#2c4c71] mb-2.5 leading-tight">
+              {product.title}
+            </h1>
 
-                <div className="text-xs text-gray-500">Minimum Order</div>
-                <div className="font-medium mb-3">{product.minimumOrderQuantity ?? '—'}</div>
+            {/* Brand */}
+            <p className="text-[17px] text-[#5c6468] mb-5">
+              {product.brand}
+            </p>
 
-                <div className="text-xs text-gray-500">Availability</div>
-                <div className="font-medium mb-3">{product.availabilityStatus ?? '—'}</div>
+            {/* Rating */}
+            <div className="flex items-center gap-4 mb-6">
+              <div className="flex items-center gap-1.5">
+                <svg className="w-5 h-5 text-[#2c8cfb]" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                </svg>
+                <span className="text-[18px] font-semibold text-[#2c4c71]">
+                  {product.rating.toFixed(1)}
+                </span>
+              </div>
+              <span className="text-[15px] text-[#5c6468]">
+                ({product.reviews?.length ?? '0'} reviews)
+              </span>
+            </div>
 
-                <div className="text-xs text-gray-500">Warranty</div>
-                <div className="font-medium mb-3">{product.warrantyInformation ?? '—'}</div>
+            {/* Stock Badge */}
+            <div className="mb-6">
+              <span className={`inline-block px-4 py-2 rounded-[8px] text-[15px] font-semibold ${
+                product.stock > 0 
+                  ? 'bg-[#5cacfa]/20 text-[#2c4c71] border border-[#5cacfa]/40' 
+                  : 'bg-[#446285]/20 text-[#2c4c71] border border-[#446285]/40'
+              }`}>
+                {product.stock > 0 ? `${product.stock} in stock` : 'Out of stock'}
+              </span>
+            </div>
 
-                <div className="text-xs text-gray-500">Shipping</div>
-                <div className="font-medium mb-3">{product.shippingInformation ?? '—'}</div>
+            {/* Price */}
+            <div className="mb-8">
+              <p className="text-[34px] font-bold text-[#2c8cfb] mb-1.5 tabular-nums">
+                ${discountPrice.toFixed(2)}
+              </p>
+              <div className="flex items-center gap-3">
+                {product.discountPercentage > 0 && (
+                  <>
+                    <span className="text-[18px] text-[#a5b8cc] line-through tabular-nums">
+                      ${product.price.toFixed(2)}
+                    </span>
+                    <span className="px-2.5 py-1 bg-[#2c8cfb]/15 text-[#2c8cfb] rounded-[6px] text-[14px] font-semibold">
+                      {product.discountPercentage.toFixed(0)}% OFF
+                    </span>
+                  </>
+                )}
+              </div>
+            </div>
+            {/* Description */}
+            <div className="mb-8 pb-8 border-b-2 border-[#a5b8cc]/25">
+              <h2 className="text-[22px] font-semibold text-[#2c4c71] mb-4">
+                Description
+              </h2>
+              <p className="text-[16px] text-[#5c6468] leading-relaxed">
+                {product.description}
+              </p>
+            </div>
 
-                <div className="text-xs text-gray-500">Return Policy</div>
-                <div className="font-medium mb-3">{product.returnPolicy ?? '—'}</div>
-
-                <div className="text-xs text-gray-500">Created</div>
-                <div className="font-medium mb-1">{formatDate(product.meta?.createdAt)}</div>
-                <div className="text-xs text-gray-500">Updated</div>
-                <div className="font-medium">{formatDate(product.meta?.updatedAt)}</div>
-
-                <div className="mt-4 text-xs text-gray-500">Barcode</div>
-                <div className="font-medium">{product.meta?.barcode ?? '—'}</div>
-
-                <div className="mt-4 text-xs text-gray-500">Deleted</div>
-                <div className="font-medium">{product.isDeleted ? `Yes (${formatDate(product.deletedOn)})` : 'No'}</div>
-              </aside>
+            {/* Reviews */}
+            <div>
+              <h2 className="text-[22px] font-semibold text-[#2c4c71] mb-5">
+                Customer Reviews
+              </h2>
+              {product.reviews && product.reviews.length ? (
+                <div className="space-y-5">
+                  {product.reviews.map((r: Review, idx) => (
+                    <div
+                      key={idx}
+                      className="bg-[#a5b8cc]/8 border border-[#a5b8cc]/20 rounded-[10px] p-5 hover:border-[#5cacfa]/40 transition-colors"
+                    >
+                      <div className="flex items-start justify-between mb-3">
+                        <div>
+                          <h4 className="text-[16px] font-semibold text-[#2c4c71] mb-1">
+                            {r.reviewerName ?? 'Anonymous'}
+                          </h4>
+                          <p className="text-[13px] text-[#a5b8cc]">
+                            {r.reviewerEmail}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-1.5 px-2.5 py-1 bg-[#2c8cfb]/10 rounded-[6px] border border-[#2c8cfb]/20">
+                          <svg className="w-4 h-4 text-[#2c8cfb]" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                          </svg>
+                          <span className="text-[14px] font-semibold text-[#2c8cfb]">
+                            {r.rating} / 5
+                          </span>
+                        </div>
+                      </div>
+                      <p className="text-[15px] text-[#5c6468] leading-relaxed mb-2.5">
+                        {r.comment}
+                      </p>
+                      <p className="text-[13px] text-[#a5b8cc]">
+                        {formatDate(r.date)}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-12 bg-[#a5b8cc]/6 rounded-[10px] border border-[#a5b8cc]/20">
+                  <svg className="w-16 h-16 text-[#a5b8cc] mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                  </svg>
+                  <p className="text-[15px] text-[#5c6468]">
+                    No reviews yet
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         </div>
 
         {/* Similar Products */}
         {similarProducts.length > 0 && (
-          <div className="mt-12">
-            <div className="mb-8 text-center">
-              <h2 className="text-4xl md:text-5xl font-extrabold mb-4">
-                <span className="bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">Browse Similar Products</span>
+          <div className="bg-white rounded-[14px] p-9 shadow-md border border-[#a5b8cc]/20">
+            <div className="mb-8">
+              <h2 className="text-[28px] font-semibold text-[#2c4c71] mb-2">
+                Browse Similar Products
               </h2>
-              <p className="text-lg text-gray-600">Discover more products from this category</p>
+              <p className="text-[16px] text-[#5c6468]">
+                Discover more products from this category
+              </p>
             </div>
+
             {similarLoading ? (
-              <LoadingSpinner />
+              <div className="flex items-center justify-center py-16">
+                <LoadingSpinner />
+              </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {similarProducts.map((similarProduct) => (
                   <ProductCard key={similarProduct.id} product={similarProduct} />
                 ))}
@@ -255,7 +293,6 @@ export default function ProductDetails() {
           </div>
         )}
       </div>
-    </div>
+    </main>
   );
 }
-

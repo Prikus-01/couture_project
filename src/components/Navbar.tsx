@@ -15,7 +15,7 @@ export default function Navbar() {
     )},
     { path: '/inventory', label: 'Inventory', icon: (
       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2" />
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
       </svg>
     )},
     { path: '/catalogue', label: 'Catalogue', icon: (
@@ -26,105 +26,81 @@ export default function Navbar() {
   ];
 
   return (
-    <nav className="bg-gradient-to-r from-purple-600 via-purple-700 to-indigo-700 text-white shadow-xl border-b-4 border-purple-400">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-20">
-          {/* Logo/Brand */}
-          <Link
-            to="/"
-            className="flex items-center space-x-3 group"
-          >
-            <div className="relative">
-              <div className="absolute inset-0 bg-white rounded-lg transform rotate-3 group-hover:rotate-6 transition-transform"></div>
-              <div className="relative bg-gradient-to-br from-yellow-300 to-orange-400 rounded-lg p-2 transform group-hover:scale-105 transition-transform">
-                <svg className="w-7 h-7 text-purple-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                </svg>
-              </div>
-            </div>
-            <div className="flex flex-col">
-              <span className="text-2xl font-extrabold tracking-tight bg-gradient-to-r from-yellow-200 to-orange-200 bg-clip-text text-transparent">
-                StoreAdmin
-              </span>
-              <span className="text-xs text-purple-200 font-medium">Inventory Portal</span>
-            </div>
+    <nav className="sticky top-0 z-50 bg-gradient-to-br from-[#2c4c71] to-[#446285] shadow-lg backdrop-blur-sm border-b border-[#5cacfa]/20">
+      <div className="container mx-auto px-6 py-3.5">
+        {/* Logo/Brand */}
+        <div className="flex items-center justify-between">
+          <Link to="/" className="flex flex-col group">
+            <span className="text-[22px] font-bold text-white tracking-tight group-hover:opacity-90 transition-opacity duration-200">
+              StoreAdmin
+            </span>
+            <span className="text-[11px] text-[#a5b8cc] uppercase tracking-wider font-medium">
+              Inventory Portal
+            </span>
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-2">
+          <div className="hidden md:flex items-center gap-1.5">
             {navItems.map((item) => (
               <Link
                 key={item.path}
                 to={item.path}
-                className={`relative px-4 py-2.5 rounded-lg font-semibold text-sm transition-all duration-200 flex items-center space-x-2 group ${
+                className={`relative flex items-center gap-2 px-4 py-2.5 rounded-[10px] font-medium text-[15px] transition-all duration-200 ${
                   isActive(item.path)
-                    ? 'bg-white text-purple-700 shadow-lg scale-105'
-                    : 'text-purple-100 hover:text-white hover:bg-white/20 hover:scale-105'
+                    ? 'bg-white/15 text-white shadow-md'
+                    : 'text-white/85 hover:bg-white/10 hover:text-white hover:-translate-y-[1px]'
                 }`}
               >
-                <span className={isActive(item.path) ? 'text-purple-600' : 'text-purple-200 group-hover:text-yellow-300'}>
-                  {item.icon}
-                </span>
+                {item.icon}
                 <span>{item.label}</span>
                 {isActive(item.path) && (
-                  <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-yellow-400 rounded-full"></div>
+                  <div className="absolute -bottom-3.5 left-1/2 -translate-x-1/2 w-7 h-[3px] bg-[#5cacfa] rounded-t-sm" />
                 )}
               </Link>
             ))}
           </div>
 
           {/* Mobile Menu Button */}
-          <div className="md:hidden">
-            <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2.5 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-colors"
-              aria-label="Toggle menu"
-            >
-              <svg
-                className="h-6 w-6"
-                fill="none"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2.5"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                {mobileMenuOpen ? (
-                  <path d="M6 18L18 6M6 6l12 12" />
-                ) : (
-                  <path d="M4 6h16M4 12h16M4 18h16" />
-                )}
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="md:hidden p-2.5 rounded-[9px] bg-white/10 border border-white/15 text-white hover:bg-white/15 transition-all duration-200"
+            aria-label="Toggle menu"
+          >
+            {mobileMenuOpen ? (
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
-            </button>
-          </div>
+            ) : (
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            )}
+          </button>
         </div>
-      </div>
 
-      {/* Mobile Menu */}
-      {mobileMenuOpen && (
-        <div className="md:hidden bg-gradient-to-b from-purple-700 to-indigo-800 border-t-2 border-purple-400/50 shadow-inner">
-          <div className="px-4 pt-3 pb-4 space-y-2">
-            {navItems.map((item) => (
-              <Link
-                key={item.path}
-                to={item.path}
-                onClick={() => setMobileMenuOpen(false)}
-                className={`flex items-center space-x-3 px-4 py-3 rounded-xl font-semibold text-base transition-all ${
-                  isActive(item.path)
-                    ? 'bg-white text-purple-700 shadow-lg'
-                    : 'text-purple-100 hover:bg-white/20 hover:text-white'
-                }`}
-              >
-                <span className={isActive(item.path) ? 'text-purple-600' : 'text-purple-200'}>
+        {/* Mobile Menu */}
+        {mobileMenuOpen && (
+          <div className="md:hidden mt-3.5 bg-[#2c4c71] rounded-xl p-2.5 shadow-2xl border border-[#5cacfa]/20">
+            <div className="flex flex-col gap-1.5">
+              {navItems.map((item) => (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={`flex items-center gap-3 px-4 py-3.5 rounded-[10px] font-semibold text-[15px] transition-all duration-200 ${
+                    isActive(item.path)
+                      ? 'bg-white text-[#2c4c71] shadow-md'
+                      : 'text-white/90 hover:bg-white/15 hover:text-white'
+                  }`}
+                >
                   {item.icon}
-                </span>
-                <span>{item.label}</span>
-              </Link>
-            ))}
+                  <span>{item.label}</span>
+                </Link>
+              ))}
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </nav>
   );
 }
-

@@ -10,6 +10,7 @@ export default function CatalogueOverview() {
   const [searchParams] = useSearchParams();
   const category = searchParams.get('category');
   const navigate = useNavigate();
+
   const [categories, setCategories] = useState<string[]>([]);
   const [categoryProducts, setCategoryProducts] = useState<Record<string, Product[]>>({});
   const [loading, setLoading] = useState(true);
@@ -54,7 +55,7 @@ export default function CatalogueOverview() {
 
   if (loading) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">
         <LoadingSpinner />
       </div>
     );
@@ -62,93 +63,82 @@ export default function CatalogueOverview() {
 
   if (error) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center px-4">
         <ErrorMessage message={error} onRetry={() => window.location.reload()} />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-indigo-50 to-purple-100">
-      {/* Decorative elements */}
-      <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-        <div className="absolute top-20 right-10 w-96 h-96 bg-purple-200 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob"></div>
-        <div className="absolute bottom-20 left-10 w-96 h-96 bg-yellow-200 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-2000"></div>
-      </div>
+    <main className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 py-10 px-5">
+      <div className="container mx-auto max-w-7xl">
+        {/* Decorative background elements */}
+        <div className="fixed top-20 right-10 w-72 h-72 bg-[#5cacfa]/5 rounded-full blur-3xl pointer-events-none"></div>
+        <div className="fixed bottom-20 left-10 w-96 h-96 bg-[#2c8cfb]/5 rounded-full blur-3xl pointer-events-none"></div>
 
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Header */}
-        <div className="mb-10 text-center">
-          <h1 className="text-5xl md:text-6xl font-extrabold mb-4">
-            <span className="bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
-              Catalogue Overview
-            </span>
+        <div className="text-center mb-12 relative">
+          <h1 className="text-[44px] md:text-5xl font-bold text-[#2c4c71] mb-3.5 tracking-tight">
+            Catalogue Overview
           </h1>
-          <p className="text-xl text-gray-700 max-w-2xl mx-auto">
+          <p className="text-[17px] text-[#5c6468] max-w-2xl mx-auto leading-relaxed">
             Browse products by category. Click on a category to view all products in that category.
           </p>
         </div>
 
         {/* Category Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-7 relative">
           {categories.map((cat) => {
             const previewProduct = categoryProducts[cat]?.[0];
             return (
               <button
                 key={cat}
                 onClick={() => navigate(`/catalogue?category=${encodeURIComponent(cat)}`)}
-                className="group relative bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden text-left border-2 border-transparent hover:border-purple-300 transform hover:-translate-y-2"
+                className="group relative bg-white rounded-[14px] shadow-md hover:shadow-2xl transition-all duration-300 overflow-hidden text-left border-2 border-transparent hover:border-[#5cacfa]/50 transform hover:-translate-y-2"
               >
                 {/* Decorative gradient overlay */}
-                <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-purple-100 to-indigo-100 rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                
-                <div className="aspect-square bg-gray-100 overflow-hidden relative">
+                <div className="absolute inset-0 bg-gradient-to-br from-[#2c8cfb]/0 via-transparent to-[#5cacfa]/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+
+                {/* Image Section */}
+                <div className="relative h-52 bg-gradient-to-br from-[#446285] to-[#2c4c71] overflow-hidden">
                   {previewProduct ? (
                     <img
                       src={previewProduct.thumbnail}
-                      alt={previewProduct.title}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                      alt={cat}
+                      className="w-full h-full object-cover opacity-90 group-hover:opacity-100 group-hover:scale-105 transition-all duration-300"
                     />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-purple-100 via-indigo-100 to-purple-50">
-                      <svg
-                        className="w-20 h-20 text-purple-300 group-hover:text-purple-400 transition-colors"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={1.5}
-                          d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
-                        />
+                    <div className="w-full h-full flex items-center justify-center">
+                      <svg className="w-20 h-20 text-[#a5b8cc]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                       </svg>
                     </div>
                   )}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent"></div>
                 </div>
-                <div className="p-5 relative">
-                  <h3 className="font-bold text-gray-900 text-lg group-hover:bg-gradient-to-r group-hover:from-purple-600 group-hover:to-indigo-600 group-hover:bg-clip-text group-hover:text-transparent transition-all mb-2">
+
+                {/* Content Section */}
+                <div className="p-6 relative">
+                  <h3 className="text-[22px] font-semibold text-[#2c4c71] mb-2.5 group-hover:text-[#2c8cfb] transition-colors">
                     {cat.charAt(0).toUpperCase() + cat.slice(1).replace(/-/g, ' ')}
                   </h3>
                   {previewProduct && (
-                    <p className="text-sm text-gray-500 truncate">
+                    <p className="text-[14px] text-[#5c6468] mb-4 line-clamp-2 leading-relaxed">
                       {previewProduct.title}
                     </p>
                   )}
-                  <div className="mt-3 flex items-center text-purple-600 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <span className="text-sm font-semibold">Explore</span>
-                    <svg className="w-4 h-4 ml-2 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                  <span className="inline-flex items-center gap-2 text-[15px] font-semibold text-[#2c8cfb] group-hover:gap-3 transition-all">
+                    Explore
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                     </svg>
-                  </div>
+                  </span>
                 </div>
               </button>
             );
           })}
         </div>
       </div>
-    </div>
+    </main>
   );
 }
-
