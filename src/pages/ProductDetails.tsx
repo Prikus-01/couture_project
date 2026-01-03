@@ -15,15 +15,6 @@ function formatDate(dateStr?: string) {
   }
 }
 
-function formatDimensions(dims?: Product['dimensions']) {
-  if (!dims) return '—';
-  const parts: string[] = [];
-  if (typeof dims.width !== 'undefined') parts.push(`W: ${dims.width}`);
-  if (typeof dims.height !== 'undefined') parts.push(`H: ${dims.height}`);
-  if (typeof dims.depth !== 'undefined') parts.push(`D: ${dims.depth}`);
-  return parts.join(' × ') || '—';
-}
-
 export default function ProductDetails() {
   const { id } = useParams<{ id: string }>();
   const [product, setProduct] = useState<Product | null>(null);
