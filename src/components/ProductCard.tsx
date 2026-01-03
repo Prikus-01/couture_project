@@ -1,6 +1,5 @@
 import { Link } from 'react-router-dom';
 import type { Product } from '../types';
-import LazyImage from './LazyImage';
 
 interface ProductCardProps {
   product: Product;
@@ -14,7 +13,7 @@ export default function ProductCard({ product, showDetails = false }: ProductCar
       className="block bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow duration-200 overflow-hidden"
     >
       <div className="aspect-square bg-gray-100 overflow-hidden">
-        <LazyImage
+        <img
           src={product.thumbnail}
           alt={product.title}
           className="w-full h-full object-cover hover:scale-105 transition-transform duration-200"

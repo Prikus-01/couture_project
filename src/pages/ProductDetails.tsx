@@ -5,7 +5,6 @@ import type { Product, Review } from '../types';
 import LoadingSpinner from '../components/LoadingSpinner';
 import ErrorMessage from '../components/ErrorMessage';
 import ProductCard from '../components/ProductCard';
-import LazyImage from '../components/LazyImage';
 
 function formatDate(dateStr?: string) {
   if (!dateStr) return '—';
@@ -93,7 +92,7 @@ export default function ProductDetails() {
           {/* Top hero image */}
           <div className="relative h-105 bg-linear-to-br from-slate-50 to-slate-100 flex items-center justify-center overflow-hidden border-b border-[#a5b8cc]/20">
             {product.images && product.images[selectedImage] ? (
-              <LazyImage
+              <img
                 src={product.images[selectedImage]}
                 alt={product.title}
                 className="max-w-full max-h-full object-contain p-8"
@@ -121,7 +120,7 @@ export default function ProductDetails() {
                       : 'border-[#a5b8cc]/30 hover:border-[#5cacfa]'
                   }`}
                 >
-                  <LazyImage
+                  <img
                     src={image}
                     alt={`${product.title} ${index + 1}`}
                     className="w-full h-full object-cover"

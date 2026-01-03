@@ -5,7 +5,6 @@ import type { Product } from '../types';
 import LoadingSpinner from '../components/LoadingSpinner';
 import ErrorMessage from '../components/ErrorMessage';
 import InventoryOverview from './InventoryOverview';
-import LazyImage from '../components/LazyImage';
 
 export default function CatalogueOverview() {
   const [searchParams] = useSearchParams();
@@ -103,7 +102,7 @@ export default function CatalogueOverview() {
                 {/* Image Section */}
                 <div className="relative h-52 bg-linear-to-br from-[#446285] to-[#2c4c71] overflow-hidden">
                   {previewProduct ? (
-                    <LazyImage
+                    <img
                       src={previewProduct.thumbnail}
                       alt={cat}
                       className="w-full h-full object-cover opacity-90 group-hover:opacity-100 group-hover:scale-105 transition-all duration-300"
